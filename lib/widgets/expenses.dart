@@ -1,3 +1,6 @@
+import "dart:math";
+
+import "package:expense_tracker/widgets/charts/chart.dart";
 import "package:expense_tracker/widgets/new_expense.dart";
 import 'package:flutter/material.dart';
 import "package:expense_tracker/models/expense.dart";
@@ -30,8 +33,40 @@ class _ExpensesState extends State<Expenses> {
 
   void _openAddExpenseOverlay() {
     showModalBottomSheet(
+      isScrollControlled: true,
       context: context,
-      builder: (ctx) => NewExpense(),
+      builder: (ctx) => NewExpense(onAddExpense: _addExpense),
+    );
+  }
+
+  void _addExpense(Expense expense) {
+    setState(() {
+      _registeredExpenses.add(expense);
+    });
+  }
+
+  void _removeExpense(Expense expense) {
+    // clear existing snack bars
+    ScaffoldMessenger.of(context).clearSnackBars();
+
+    // need this index for undo
+    final indexOfRemoveExp = _registeredExpenses.indexOf(expense);
+    setState(() {
+      _registeredExpenses.remove(expense);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: Duration(seconds: 2),
+        content: Text("Expense deleted: ${expense.title}"),
+        action: SnackBarAction(
+            label: "Undo",
+            onPressed: () {
+              setState(() {
+                _registeredExpenses.insert(indexOfRemoveExp, expense);
+              });
+            }),
+      ),
     );
   }
 
@@ -49,9 +84,12 @@ class _ExpensesState extends State<Expenses> {
       ),
       body: Column(
         children: [
-          Text("Chart..."),
+          Chart(expenses: _registeredExpenses),
           Expanded(
-            child: ExpensesList(expList: _registeredExpenses),
+            child: ExpensesList(
+              expList: _registeredExpenses,
+              onRemoveExpense: _removeExpense,
+            ),
           ),
         ],
       ),

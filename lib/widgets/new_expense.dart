@@ -3,6 +3,10 @@ import "package:flutter/cupertino.dart";
 import "package:expense_tracker/models/expense.dart";
 
 class NewExpense extends StatefulWidget {
+  const NewExpense({required this.onAddExpense, super.key});
+
+  final void Function(Expense expense) onAddExpense;
+
   @override
   State<NewExpense> createState() {
     return _NewExpenseState();
@@ -60,12 +64,22 @@ class _NewExpenseState extends State<NewExpense> {
 
       return;
     }
+    // deal with the expense submission
+    Expense myExp = Expense(
+        title: _titleController.text,
+        amount: enteredAmount,
+        date: _selectedDate!,
+        category: _selectedCategory);
+    widget.onAddExpense(myExp);
+
+    // close the create overlay
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(16, 70, 16, 16),
       child: Column(
         children: [
           TextField(
